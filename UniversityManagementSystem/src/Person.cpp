@@ -1,23 +1,24 @@
-
 #include "Person.h"
 
-Person::Person(const std::string& id,
-               const std::string& name,
-               const std::string& username,
-               const std::string& password)
+using namespace std;
+
+Person::Person(const string& id,
+               const string& name,
+               const string& username,
+               const string& password)
     : ID(id),
       name(name),
       username(username),
       password(password) {
 }
 
-bool Person::login(const std::string& inputUsername,
-                   const std::string& inputPassword) const {
+bool Person::login(const string& inputUsername,
+                   const string& inputPassword) const {
 
     return inputUsername == username &&
            inputPassword == password;
 }
 
 void Person::logout() const {
-    // Logout behavior will be connected to the UI later.
+    // Logout behavior
 }

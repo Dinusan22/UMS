@@ -1,15 +1,16 @@
-
 #ifndef ADMINISTRATOR_H
 #define ADMINISTRATOR_H
 
 #include "Person.h"
 
+using namespace std;
+
 class Administrator : public Person {
 public:
-    Administrator(const std::string& id,
-                  const std::string& name,
-                  const std::string& username,
-                  const std::string& password);
+    Administrator(const string& id,
+                  const string& name,
+                  const string& username,
+                  const string& password);
 
     void displayMenu() const override;
 };

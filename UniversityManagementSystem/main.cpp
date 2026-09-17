@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -10,40 +9,42 @@
 #include "LabCourse.h"
 #include "ProjectCourse.h"
 
+using namespace std;
+
 void testCourse(Course* course) {
 
-    std::cout << "\n==============================\n";
+    cout << "\n==============================\n";
 
     course->displayCourseDetails();
 
-    std::cout << "\nAdding students...\n";
+    cout << "\nAdding students...\n";
 
     if (course->enrollStudent("S001")) {
-        std::cout << "S001 enrolled successfully.\n";
+        cout << "S001 enrolled successfully.\n";
     } else {
-        std::cout << "S001 could not be enrolled.\n";
+        cout << "S001 could not be enrolled.\n";
     }
 
     if (course->enrollStudent("S002")) {
-        std::cout << "S002 enrolled successfully.\n";
+        cout << "S002 enrolled successfully.\n";
     } else {
-        std::cout << "S002 could not be enrolled.\n";
+        cout << "S002 could not be enrolled.\n";
     }
 
     if (course->enrollStudent("S001")) {
-        std::cout << "S001 enrolled successfully again.\n";
+        cout << "S001 enrolled successfully again.\n";
     } else {
-        std::cout << "Duplicate enrolment rejected.\n";
+        cout << "Duplicate enrolment rejected.\n";
     }
 
     course->displayCourseDetails();
 
-    std::cout << "\nRemoving S001...\n";
+    cout << "\nRemoving S001...\n";
 
     if (course->removeStudent("S001")) {
-        std::cout << "S001 removed successfully.\n";
+        cout << "S001 removed successfully.\n";
     } else {
-        std::cout << "S001 was not found.\n";
+        cout << "S001 was not found.\n";
     }
 
     course->displayCourseDetails();
@@ -80,18 +81,18 @@ int main() {
 
     for (Person* user : users) {
 
-        std::string username;
-        std::string password;
+        string username;
+        string password;
 
-        std::cout << "\nEnter username: ";
-        std::cin >> username;
+        cout << "\nEnter username: ";
+        cin >> username;
 
-        std::cout << "Enter password: ";
-        std::cin >> password;
+        cout << "Enter password: ";
+        cin >> password;
 
         if (user->login(username, password)) {
 
-            std::cout << "\nLogin successful!\n";
+            cout << "\nLogin successful!\n";
 
             user->displayMenu();
 
@@ -99,11 +100,11 @@ int main() {
 
         } else {
 
-            std::cout << "\nInvalid username or password.\n";
+            cout << "\nInvalid username or password.\n";
         }
     }
 
-     LectureCourse lecture(
+    LectureCourse lecture(
         "CO2203",
         "Object Oriented Programming",
         2

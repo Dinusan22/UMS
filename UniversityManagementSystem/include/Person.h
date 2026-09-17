@@ -1,24 +1,25 @@
-
 #ifndef PERSON_H
 #define PERSON_H
 
 #include <string>
 
+using namespace std;
+
 class Person {
-private:
-    std::string ID;
-    std::string name;
-    std::string username;
-    std::string password;
+protected:
+    string ID;
+    string name;
+    string username;
+    string password;
 
 public:
-    Person(const std::string& id,
-           const std::string& name,
-           const std::string& username,
-           const std::string& password);
+    Person(const string& id,
+           const string& name,
+           const string& username,
+           const string& password);
 
-    bool login(const std::string& inputUsername,
-               const std::string& inputPassword) const;
+    bool login(const string& inputUsername,
+               const string& inputPassword) const;
 
     void logout() const;
 

@@ -1,8 +1,9 @@
-
 #include "LectureCourse.h"
 
-LectureCourse::LectureCourse(const std::string& code,
-                             const std::string& name,
+using namespace std;
+
+LectureCourse::LectureCourse(const string& code,
+                             const string& name,
                              int capacity)
     : Course(code, name, capacity) {
 }

@@ -1,8 +1,9 @@
-
 #include "ProjectCourse.h"
 
-ProjectCourse::ProjectCourse(const std::string& code,
-                             const std::string& name,
+using namespace std;
+
+ProjectCourse::ProjectCourse(const string& code,
+                             const string& name,
                              int capacity)
     : Course(code, name, capacity) {
 }

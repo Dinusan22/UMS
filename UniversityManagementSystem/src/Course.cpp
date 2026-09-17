@@ -1,24 +1,25 @@
-
 #include "Course.h"
 
 #include <algorithm>
 #include <iostream>
 
-Course::Course(const std::string& code,
-               const std::string& name,
+using namespace std;
+
+Course::Course(const string& code,
+               const string& name,
                int maxCapacity)
     : courseCode(code),
       courseName(name),
       capacity(maxCapacity) {
 }
 
-bool Course::enrollStudent(const std::string& studentID) {
+bool Course::enrollStudent(const string& studentID) {
 
     if (isFull()) {
         return false;
     }
 
-    auto studentFound = std::find(
+    auto studentFound = find(
         enrolledStudents.begin(),
         enrolledStudents.end(),
         studentID
@@ -33,9 +34,9 @@ bool Course::enrollStudent(const std::string& studentID) {
     return true;
 }
 
-bool Course::removeStudent(const std::string& studentID) {
+bool Course::removeStudent(const string& studentID) {
 
-    auto studentFound = std::find(
+    auto studentFound = find(
         enrolledStudents.begin(),
         enrolledStudents.end(),
         studentID
@@ -53,7 +54,7 @@ bool Course::removeStudent(const std::string& studentID) {
 bool Course::isFull() const {
 
     return enrolledStudents.size() >=
-           static_cast<std::size_t>(capacity);
+           static_cast<size_t>(capacity);
 }
 
 int Course::getEnrolledCount() const {
@@ -61,30 +62,30 @@ int Course::getEnrolledCount() const {
     return static_cast<int>(enrolledStudents.size());
 }
 
-std::string Course::getCourseCode() const {
+string Course::getCourseCode() const {
 
     return courseCode;
 }
 
-std::string Course::getCourseName() const {
+string Course::getCourseName() const {
 
     return courseName;
 }
 
 void Course::displayCourseDetails() const {
 
-    std::cout << "\nCourse Code: "
-              << courseCode << '\n';
+    cout << "\nCourse Code: "
+         << courseCode << '\n';
 
-    std::cout << "Course Name: "
-              << courseName << '\n';
+    cout << "Course Name: "
+         << courseName << '\n';
 
-    std::cout << "Capacity: "
-              << capacity << '\n';
+    cout << "Capacity: "
+         << capacity << '\n';
 
-    std::cout << "Enrolled Students: "
-              << enrolledStudents.size() << '\n';
+    cout << "Enrolled Students: "
+         << enrolledStudents.size() << '\n';
 
-    std::cout << "Credits: "
-              << calculateCredits() << '\n';
+    cout << "Credits: "
+         << calculateCredits() << '\n';
 }

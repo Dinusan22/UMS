@@ -1,8 +1,9 @@
-
 #include "LabCourse.h"
 
-LabCourse::LabCourse(const std::string& code,
-                     const std::string& name,
+using namespace std;
+
+LabCourse::LabCourse(const string& code,
+                     const string& name,
                      int capacity)
     : Course(code, name, capacity) {
 }
