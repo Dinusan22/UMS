@@ -8,6 +8,11 @@
 #include "LectureCourse.h"
 #include "LabCourse.h"
 #include "ProjectCourse.h"
+#include "LectureCourse.h"
+#include "Enrollment.h"
+#include "PrerequisiteException.h"
+#include "NotEnrolledException.h"
+#include "SessionClosedException.h"
 
 using namespace std;
 
@@ -110,6 +115,44 @@ int main() {
         2
     );
 
+     LectureCourse oopCourse(
+        "CO2203",
+        "Object Oriented Programming",
+        2
+    );
+
+      Enrollment enrollment;
+
+    try {
+        cout << "Registering student S001..." << endl;
+
+        if (enrollment.enrollStudent(oopCourse, "S001")) {
+            cout << "Student registered successfully." << endl;
+        }
+    }
+    catch (const AppException& error) {
+        cout << "Error: " << error.what() << endl;
+    }
+
+    cout << endl;
+
+    try {
+        cout << "Testing invalid student ID..." << endl;
+
+        enrollment.enrollStudent(oopCourse, "");
+    }
+    catch (const AppException& error) {
+        cout << "Error: " << error.what() << endl;
+    }
+
+    cout << endl;
+
+    cout << "Dropping student S001..." << endl;
+
+    if (enrollment.dropCourse(oopCourse, "S001")) {
+        cout << "Student dropped successfully." << endl;
+    }
+
     LabCourse lab(
         "CO2204",
         "Programming Laboratory",
@@ -125,6 +168,23 @@ int main() {
     testCourse(&lecture);
     testCourse(&lab);
     testCourse(&project);
+
+    cout << "\n--- Exception Testing ---" << endl;
+    
+// not enrolled exception ,session closedexception
+try {
+    throw NotEnrolledException();
+}
+catch (const AppException& e) {
+    cout << "Caught exception: " << e.what() << endl;
+}
+
+try {
+    throw SessionClosedException();
+}
+catch (const AppException& e) {
+    cout << "Caught exception: " << e.what() << endl;
+}
 
     return 0;
 }
