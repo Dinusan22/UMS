@@ -1,4 +1,5 @@
 #include "Course.h"
+#include "Student.h"
 
 #include <algorithm>
 #include <iostream>
@@ -10,10 +11,15 @@ Course::Course(const string& code,
                int maxCapacity)
     : courseCode(code),
       courseName(name),
-      capacity(maxCapacity) {
+      capacity(maxCapacity),
+      prerequisite(nullptr) {
 }
 
-bool Course::enrollStudent(const string& studentID) {
+bool Course::enrollStudent(Student* student) {
+
+    if (student == nullptr) {
+        return false;
+    }
 
     if (isFull()) {
         return false;
@@ -22,24 +28,24 @@ bool Course::enrollStudent(const string& studentID) {
     auto studentFound = find(
         enrolledStudents.begin(),
         enrolledStudents.end(),
-        studentID
+        student
     );
 
     if (studentFound != enrolledStudents.end()) {
         return false;
     }
 
-    enrolledStudents.push_back(studentID);
+    enrolledStudents.push_back(student);
 
     return true;
 }
 
-bool Course::removeStudent(const string& studentID) {
+bool Course::removeStudent(Student* student) {
 
     auto studentFound = find(
         enrolledStudents.begin(),
         enrolledStudents.end(),
-        studentID
+        student
     );
 
     if (studentFound == enrolledStudents.end()) {
@@ -59,7 +65,9 @@ bool Course::isFull() const {
 
 int Course::getEnrolledCount() const {
 
-    return static_cast<int>(enrolledStudents.size());
+    return static_cast<int>(
+        enrolledStudents.size()
+    );
 }
 
 string Course::getCourseCode() const {
@@ -72,20 +80,62 @@ string Course::getCourseName() const {
     return courseName;
 }
 
+void Course::setPrerequisite(Course* course) {
+
+    prerequisite = course;
+}
+
+Course* Course::getPrerequisite() const {
+
+    return prerequisite;
+}
+
 void Course::displayCourseDetails() const {
 
     cout << "\nCourse Code: "
-         << courseCode << '\n';
+         << courseCode << endl;
 
     cout << "Course Name: "
-         << courseName << '\n';
+         << courseName << endl;
 
     cout << "Capacity: "
-         << capacity << '\n';
+         << capacity << endl;
 
     cout << "Enrolled Students: "
-         << enrolledStudents.size() << '\n';
+         << enrolledStudents.size() << endl;
 
     cout << "Credits: "
-         << calculateCredits() << '\n';
+         << calculateCredits() << endl;
+
+    if (prerequisite != nullptr) {
+
+        cout << "Prerequisite: "
+             << prerequisite->getCourseCode()
+             << endl;
+
+    } else {
+
+        cout << "Prerequisite: None" << endl;
+    }
+}
+
+ostream& operator<<(ostream& out,
+                    const Course& course) {
+
+    out << "Course Code: "
+        << course.courseCode
+
+        << ", Name: "
+        << course.courseName
+
+        << ", Capacity: "
+        << course.capacity
+
+        << ", Enrolled: "
+        << course.enrolledStudents.size()
+
+        << ", Credits: "
+        << course.calculateCredits();
+
+    return out;
 }

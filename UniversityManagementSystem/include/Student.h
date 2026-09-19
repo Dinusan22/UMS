@@ -2,10 +2,17 @@
 #define STUDENT_H
 
 #include "Person.h"
+#include <vector>
+#include <iostream>
 
 using namespace std;
 
+class Course;
+
 class Student : public Person {
+private:
+    vector<Course*> enrolledCourses;
+
 public:
     Student(const string& id,
             const string& name,
@@ -13,6 +20,15 @@ public:
             const string& password);
 
     void displayMenu() const override;
+
+    void registerCourse(Course* course);
+    void dropCourse(Course* course);
+
+    bool isEnrolledIn(Course* course) const;
+
+    const vector<Course*>& getEnrolledCourses() const;
+
+    friend ostream& operator<<(ostream& out, const Student& student);
 };
 
 #endif

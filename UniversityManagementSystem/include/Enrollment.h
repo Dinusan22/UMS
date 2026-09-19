@@ -1,23 +1,20 @@
 #ifndef ENROLLMENT_H
 #define ENROLLMENT_H
 
+#include "Student.h"
 #include "Course.h"
-#include "PrerequisiteException.h"
-
-#include <string>
 
 using namespace std;
 
 class Enrollment {
 public:
-    bool enrollStudent(Course& course, string studentID);
 
-    bool dropCourse(Course& course, string studentID);
+    bool enrollStudent(Student* student, Course* course);
 
-    bool checkPrerequisites(
-        string studentID,
-        const Course& course
-    ) const;
+    bool dropCourse(Student* student, Course* course);
+
+    bool checkPrerequisites(Student* student,
+                            Course* course) const;
 };
 
 #endif

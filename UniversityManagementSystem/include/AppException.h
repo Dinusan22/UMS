@@ -11,8 +11,7 @@ private:
     string message;
 
 public:
-    AppException(string message);
-
+    AppException(const string& message);
     const char* what() const noexcept override;
 };
 

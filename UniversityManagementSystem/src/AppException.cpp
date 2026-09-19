@@ -1,9 +1,7 @@
 #include "AppException.h"
 
-using namespace std;
-
-AppException::AppException(string message) {
-    this->message = message;
+AppException::AppException(const string& message)
+    : message(message) {
 }
 
 const char* AppException::what() const noexcept {
