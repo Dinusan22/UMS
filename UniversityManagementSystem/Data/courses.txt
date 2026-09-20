@@ -1,0 +1,5 @@
+LECTURE|CO1101|Programming Fundamentals|30|NONE|L001|Monday,09:00,10:30,Room A
+LAB|CO1201|Programming Lab|20|CO1101|L001|Wednesday,10:00,12:00,Lab 1
+PROJECT|CO2203|Object Oriented Project|15|CO1201|L001|Friday,13:00,15:00,Project Room
+LECTURE|CO1301|Web Systems|30|NONE|L001|Monday,10:00,11:00,Room B
+LECTURE|CO1254|DSA|40|NONE|L002|Thursday,14:00,15:00,Room C

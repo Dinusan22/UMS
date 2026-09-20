@@ -17,7 +17,6 @@ private:
     string timestamp;
     AttendanceStatus status;
     string captureMethod;
-
     vector<AttendanceCorrection> corrections;
 
 public:
@@ -27,8 +26,6 @@ public:
                      const string& timestamp,
                      AttendanceStatus status,
                      const string& captureMethod);
-
-    void markAttendance(AttendanceStatus newStatus);
 
     void viewRecord() const;
 
@@ -41,6 +38,7 @@ public:
     string getCaptureMethod() const;
 
     void addCorrection(const AttendanceCorrection& correction);
+    const vector<AttendanceCorrection>& getCorrections() const;
 };
 
 #endif

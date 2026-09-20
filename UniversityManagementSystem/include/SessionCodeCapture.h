@@ -1,8 +1,8 @@
 #ifndef SESSIONCODECAPTURE_H
 #define SESSIONCODECAPTURE_H
 
-#include <string>
 #include <chrono>
+#include <string>
 #include "AttendanceCapture.h"
 
 using namespace std;
@@ -16,10 +16,13 @@ private:
 
 public:
     SessionCodeCapture();
+    SessionCodeCapture(const string& code);
 
     void beginSession() override;
     void captureNext() override;
     void endSession() override;
+
+    bool verifyCode(const string& enteredCode) const override;
 };
 
 #endif

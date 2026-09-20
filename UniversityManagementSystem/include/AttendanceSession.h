@@ -3,6 +3,7 @@
 
 #include <string>
 #include "AttendanceCapture.h"
+#include "AttendanceStatus.h"
 
 using namespace std;
 
@@ -32,6 +33,12 @@ public:
     void openSession();
     void captureAttendance();
     void closeSession();
+
+    bool verifyCode(const string& code) const;
+
+    bool hasCapturedEvent() const;
+    string getCapturedStudentID() const;
+    AttendanceStatus getCapturedStatus() const;
 };
 
 #endif

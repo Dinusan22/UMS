@@ -36,9 +36,12 @@ public:
 
     bool isFull() const;
     int getEnrolledCount() const;
+    int getCapacity() const;
 
     string getCourseCode() const;
     string getCourseName() const;
+    void setCourseName(const string& name);
+    void setCapacity(int maxCapacity);
 
     void setPrerequisite(Course* course);
     Course* getPrerequisite() const;

@@ -19,11 +19,6 @@ AttendanceRecord::AttendanceRecord(
 {
 }
 
-void AttendanceRecord::markAttendance(AttendanceStatus newStatus)
-{
-    status = newStatus;
-}
-
 void AttendanceRecord::viewRecord() const
 {
     cout << "Record ID: " << recordID << endl;
@@ -115,4 +110,9 @@ void AttendanceRecord::addCorrection(
     const AttendanceCorrection& correction)
 {
     corrections.push_back(correction);
+}
+
+const vector<AttendanceCorrection>& AttendanceRecord::getCorrections() const
+{
+    return corrections;
 }

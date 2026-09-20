@@ -65,3 +65,17 @@ int Person::getPersonCount() {
 
     return personCount;
 }
+void Person::setName(const string& name)
+{
+    this->name = name;
+}
+
+void Person::setUsername(const string& username)
+{
+    this->username = username;
+}
+
+void Person::setPassword(const string& password)
+{
+    this->password = password;
+}

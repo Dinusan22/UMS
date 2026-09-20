@@ -22,6 +22,11 @@ public:
     bool overlaps(const TimeSlot& other) const;
 
     bool operator==(const TimeSlot& other) const;
+
+    string getDay() const;
+    string getStartTime() const;
+    string getEndTime() const;
+    string getLocation() const;
 };
 
 #endif

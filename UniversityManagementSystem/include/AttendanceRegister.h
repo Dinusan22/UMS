@@ -18,6 +18,9 @@ public:
 
     void addRecord(const AttendanceRecord& record);
 
+    void applyCorrection(const string& recordID,
+                         const AttendanceCorrection& correction);
+
     double calculatePercentage(const string& studentID) const;
 
     void viewRecords() const;

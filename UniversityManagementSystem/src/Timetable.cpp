@@ -34,3 +34,31 @@ const vector<TimeSlot>& Timetable::getSlots() const
 {
     return slots;
 }
+
+ostream& operator<<(ostream& out, const Timetable& timetable)
+{
+    if (timetable.slots.empty())
+    {
+        out << "Timetable is empty.";
+        return out;
+    }
+
+    out << "Timetable:" << endl;
+
+    for (const TimeSlot& slot : timetable.slots)
+    {
+        out << "  "
+            << slot.getDay() << " "
+            << slot.getStartTime() << "-"
+            << slot.getEndTime()
+            << " | " << slot.getLocation()
+            << endl;
+    }
+
+    return out;
+}
+
+void Timetable::clear()
+{
+    slots.clear();
+}
