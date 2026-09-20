@@ -1,0 +1,4 @@
+STUDENT|S001|John Student|john|1234|CO1101,CO1201,CO2203
+STUDENT|S003|Kamal|kamal|1234|CO1101,CO1201
+LECTURER|L001|Dr. David Lecturer|lecturer|1234
+ADMIN|A001|System Admin|admin|admin
