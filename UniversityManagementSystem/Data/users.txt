@@ -1,4 +1,7 @@
 STUDENT|S001|John Student|john|1234|CO1101,CO1201,CO2203
 STUDENT|S003|Kamal|kamal|1234|CO1101,CO1201
-LECTURER|L001|Dr. David Lecturer|lecturer|1234
+STUDENT|S004|Makee|makee|12345|CO1101
+LECTURER|L001|Dr. David Lecturer|david|1234
+LECTURER|L002|Dr. Sajee Lecturer|sajee|1234
+LECTURER|L003|Dr. Rajini Lecturer|rajini|1234
 ADMIN|A001|System Admin|admin|admin

@@ -2,6 +2,9 @@
 
 #include "PrerequisiteException.h"
 #include "NotEnrolledException.h"
+#include "DuplicateEnrollmentException.h"
+
+#include <set>
 
 using namespace std;
 
@@ -24,7 +27,7 @@ bool Enrollment::enrollStudent(
     // Check duplicate enrollment
     if (student->isEnrolledIn(course))
     {
-        return false;
+        throw DuplicateEnrollmentException();
     }
 
     // Check timetable clash
@@ -90,19 +93,25 @@ bool Enrollment::checkPrerequisites(
         return false;
     }
 
+    set<string> checked;
     Course* prerequisite = course->getPrerequisite();
 
-    if (prerequisite == nullptr)
+    while (prerequisite != nullptr)
     {
-        return true;
+        if (!checked.insert(prerequisite->getCourseCode()).second)
+        {
+            return false;
+        }
+
+        if (!student->isEnrolledIn(prerequisite))
+        {
+            return false;
+        }
+
+        prerequisite = prerequisite->getPrerequisite();
     }
 
-    if (student->isEnrolledIn(prerequisite))
-    {
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 bool Enrollment::detectClash(

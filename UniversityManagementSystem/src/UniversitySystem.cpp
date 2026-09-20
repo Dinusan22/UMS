@@ -1,6 +1,11 @@
 #include "../include/UniversitySystem.h"
 #include "../include/FileReplayCapture.h"
+#include "../include/SessionCodeCapture.h"
 #include "../include/AppException.h"
+#include "../include/NotEnrolledException.h"
+#include "../include/SessionClosedException.h"
+#include "../include/DuplicateAttendanceException.h"
+#include "../include/AttendanceCorrection.h"
 
 #include <algorithm>
 #include <chrono>
@@ -10,7 +15,6 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
-#include <set>
 
 using namespace std;
 
@@ -60,6 +64,13 @@ UniversitySystem::UniversitySystem()
 }
 
 UniversitySystem::~UniversitySystem() {
+    if (activeAttendanceSession) {
+        activeAttendanceSession->closeSession();
+        if (!activeSessionId.empty() && !activeCourseCode.empty())
+            sessionCourse[activeSessionId] = activeCourseCode;
+        activeAttendanceSession.reset();
+    }
+
     saveData();
     clearData();
 }
@@ -190,17 +201,20 @@ void UniversitySystem::studentMenu(Student* student) {
         cout << "4. View my courses\n";
         cout << "5. View timetable\n";
         cout << "6. View attendance\n";
-        cout << "7. Logout\n";
+        cout << "7. Mark attendance\n";
+        cout << "8. Logout\n";
 
-        int choice = readInt("Choice: ", 1, 7);
+        int choice = readInt("Choice: ", 1, 8);
         try {
             if (choice == 1) viewCourses();
             else if (choice == 2) registerCourse(student);
             else if (choice == 3) dropCourse(student);
             else if (choice == 4) {
                 cout << "\n===== MY COURSES =====\n";
-                if (student->getEnrolledCourses().empty()) cout << "No courses enrolled.\n";
-                for (Course* course : student->getEnrolledCourses()) cout << *course << '\n';
+                if (student->getEnrolledCourses().empty())
+                    cout << "No courses enrolled.\n";
+                for (Course* course : student->getEnrolledCourses())
+                    cout << *course << '\n';
             }
             else if (choice == 5) {
                 cout << "\n===== MY TIMETABLE =====\n";
@@ -208,23 +222,20 @@ void UniversitySystem::studentMenu(Student* student) {
                     cout << "No courses enrolled.\n";
                     continue;
                 }
+
                 for (Course* course : student->getEnrolledCourses()) {
-                    cout << course->getCourseCode() << " - " << course->getCourseName() << '\n';
-                    auto it = courseSlots.find(course->getCourseCode());
-                    if (it == courseSlots.end()) {
-                        cout << "  No timetable slot.\n";
-                        continue;
-                    }
-                    for (const string& text : it->second) {
-                        vector<string> f = split(text);
-                        if (f.size() == 4)
-                            cout << "  Day: " << f[0] << " | Time: " << f[1]
-                                 << "-" << f[2] << " | Venue: " << f[3] << '\n';
-                    }
+                    cout << course->getCourseCode()
+                         << " - " << course->getCourseName() << '\n';
+                    cout << course->getTimetable();
+                    cout << '\n';
                 }
             }
             else if (choice == 6) viewStudentAttendance(student);
-            else { student->logout(); return; }
+            else if (choice == 7) markAttendance(student);
+            else {
+                student->logout();
+                return;
+            }
         }
         catch (const exception& e) {
             cout << "Error: " << e.what() << '\n';
@@ -235,31 +246,9 @@ void UniversitySystem::studentMenu(Student* student) {
 void UniversitySystem::registerCourse(Student* student) {
     string code = readLine("Course code: ");
     Course* course = findCourse(code);
-    if (!course) { cout << "Course not found.\n"; return; }
-    if (student->isEnrolledIn(course)) { cout << "Already enrolled.\n"; return; }
-    if (course->isFull()) { cout << "Course is full.\n"; return; }
-
-    // Check every prerequisite in the chain.
-    set<string> checked;
-    Course* pre = course->getPrerequisite();
-    while (pre) {
-        if (!checked.insert(pre->getCourseCode()).second) {
-            cout << "Prerequisite cycle found. Registration rejected.\n";
-            return;
-        }
-        if (!student->isEnrolledIn(pre)) {
-            cout << "Prerequisite not satisfied: " << pre->getCourseCode() << '\n';
-            return;
-        }
-        pre = pre->getPrerequisite();
-    }
-
-    // Check the new course against all existing student slots.
-    for (const TimeSlot& slot : course->getTimetable().getSlots()) {
-        if (student->getTimetable().hasClash(slot)) {
-            cout << "Timetable clash detected. Registration rejected.\n";
-            return;
-        }
+    if (!course) {
+        cout << "Course not found.\n";
+        return;
     }
 
     if (enrollment.enrollStudent(student, course)) {
@@ -297,8 +286,14 @@ void UniversitySystem::viewStudentAttendance(Student* student) const {
 void UniversitySystem::lecturerMenu(Lecturer* lecturer) {
     while (true) {
         cout << "\n===== LECTURER MENU =====\n";
-        cout << "1. View my courses\n2. Open attendance session\n3. View attendance report\n4. Logout\n";
-        int choice = readInt("Choice: ", 1, 4);
+        cout << "1. View my courses\n";
+        cout << "2. Open attendance session\n";
+        cout << "3. Close attendance session\n";
+        cout << "4. View attendance report\n";
+        cout << "5. Correct attendance\n";
+        cout << "6. Logout\n";
+
+        int choice = readInt("Choice: ", 1, 6);
         try {
             if (choice == 1) {
                 bool found = false;
@@ -306,25 +301,43 @@ void UniversitySystem::lecturerMenu(Lecturer* lecturer) {
                     if (lecturerOwnsCourse(lecturer, c)) {
                         found = true;
                         cout << *c << '\n';
-                        cout << "Enrolled: " << c->getEnrolledCount() << '\n';
+                        cout << "Enrolled: "
+                             << c->getEnrolledCount() << '\n';
                     }
                 }
                 if (!found) cout << "No courses assigned.\n";
             }
             else if (choice == 2) openAttendance(lecturer);
-            else if (choice == 3) attendanceReport(lecturer);
-            else { lecturer->logout(); return; }
+            else if (choice == 3) closeAttendance(lecturer);
+            else if (choice == 4) attendanceReport(lecturer);
+            else if (choice == 5) correctAttendance(lecturer);
+            else {
+                lecturer->logout();
+                return;
+            }
         }
-        catch (const exception& e) { cout << "Error: " << e.what() << '\n'; }
+        catch (const exception& e) {
+            cout << "Error: " << e.what() << '\n';
+        }
     }
 }
 
 void UniversitySystem::openAttendance(Lecturer* lecturer) {
+    if (activeAttendanceSession) {
+        cout << "An attendance session is already open.\n";
+        cout << "Session ID: " << activeSessionId << '\n';
+        cout << "Course: " << activeCourseCode << '\n';
+        return;
+    }
+
     vector<Course*> courses;
     for (Course* c : courseRepository.getAll())
         if (lecturerOwnsCourse(lecturer, c)) courses.push_back(c);
 
-    if (courses.empty()) { cout << "No courses assigned.\n"; return; }
+    if (courses.empty()) {
+        cout << "No courses assigned.\n";
+        return;
+    }
 
     cout << "\n===== MY COURSES =====\n";
     for (size_t i = 0; i < courses.size(); ++i)
@@ -332,80 +345,182 @@ void UniversitySystem::openAttendance(Lecturer* lecturer) {
              << " - " << courses[i]->getCourseName()
              << " | Enrolled: " << courses[i]->getEnrolledCount() << '\n';
 
-    int choice = readInt("Choose course: ", 1, static_cast<int>(courses.size()));
+    int choice = readInt("Choose course: ", 1,
+                         static_cast<int>(courses.size()));
     Course* course = courses[choice - 1];
-    if (course->getEnrolledCount() == 0) { cout << "No students enrolled.\n"; return; }
+
+    if (course->getEnrolledCount() == 0) {
+        cout << "No students enrolled.\n";
+        return;
+    }
+
+    cout << "\nAttendance capture method:\n";
+    cout << "1. Session Code (students enter the code)\n";
+    cout << "2. File Replay (replay Data/capture.txt)\n";
+    int method = readInt("Choose method: ", 1, 2);
 
     string sessionId = makeSessionId();
-    string sessionCode = makeSessionCode();
-    string filename = "Data/capture.txt";
+    AttendanceCapture* capture = nullptr;
 
-    // The first line contains the session code. Other lines are real attendance events.
-    vector<string> lines;
-    ifstream in(filename);
-    string line;
-    while (getline(in, line)) lines.push_back(line);
-    in.close();
+    if (method == 1) {
+        capture = new SessionCodeCapture(makeSessionCode());
+    } else {
+        capture = new FileReplayCapture("Data/capture.txt");
+    }
 
-    if (lines.empty()) lines.push_back("SESSION|" + sessionCode);
-    else lines[0] = "SESSION|" + sessionCode;
-
-    ofstream out(filename);
-    if (!out) { cout << "Cannot open " << filename << "\n"; return; }
-    for (const string& s : lines) out << s << '\n';
-    out.close();
-
-    FileReplayCapture capture(filename, sessionCode);
-    AttendanceSession session(sessionId, currentDate(), currentTime(), "END", &capture);
+    unique_ptr<AttendanceSession> newSession;
 
     try {
-        session.openSession();
+        newSession = make_unique<AttendanceSession>(
+            sessionId,
+            currentDate(),
+            currentTime(),
+            "END",
+            capture);
 
-        while (true) {
-            capture.captureNext();
-            if (!capture.hasEvent()) break;
-
-            string studentId = capture.getLastStudentID();
-            Student* student = findStudent(studentId);
-
-            if (!student) {
-                cout << "Student " << studentId << " not found.\n";
-                continue;
-            }
-            if (!student->isEnrolledIn(course)) {
-                cout << studentId << " is not enrolled in " << course->getCourseCode() << ".\n";
-                continue;
-            }
-
-            bool duplicate = false;
-            for (const AttendanceRecord& r : attendanceRecords)
-                if (r.getStudentID() == studentId && r.getSessionID() == sessionId)
-                    duplicate = true;
-
-            if (duplicate) {
-                cout << "Attendance already recorded for " << studentId << ".\n";
-                continue;
-            }
-
-            AttendanceRecord record(makeRecordId(), studentId, sessionId,
-                                    currentDateTime(), capture.getLastStatus(),
-                                    "FileReplayCapture");
-            attendanceRegister.addRecord(record);
-            attendanceRecords.push_back(record);
-            ++nextRecordNumber;
-            cout << "Attendance recorded for " << studentId << ".\n";
-        }
-
-        session.closeSession();
-        sessionCourse[sessionId] = course->getCourseCode();
+        newSession->openSession();
         ++nextSessionNumber;
-        saveData();
-        cout << "Attendance session completed.\n";
+
+        if (method == 1) {
+            activeAttendanceSession = move(newSession);
+            activeSessionId = sessionId;
+            activeCourseCode = course->getCourseCode();
+            activeLecturerId = lecturer->getId();
+
+            cout << "\nAttendance session is now OPEN.\n";
+            cout << "Students can log in and select Mark attendance.\n";
+        } else {
+            // File replay is the second capture mechanism required by the project.
+            // Each event in the file becomes an AttendanceRecord.
+            while (true) {
+                newSession->captureAttendance();
+                if (!newSession->hasCapturedEvent()) break;
+
+                string studentId = newSession->getCapturedStudentID();
+                Student* student = findStudent(studentId);
+
+                if (!student || !student->isEnrolledIn(course)) {
+                    cout << "Skipping file event for " << studentId
+                         << ": student is not enrolled in "
+                         << course->getCourseCode() << ".\n";
+                    continue;
+                }
+
+                bool duplicate = false;
+                for (const AttendanceRecord& record : attendanceRecords) {
+                    if (record.getStudentID() == studentId &&
+                        record.getSessionID() == sessionId) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+
+                if (duplicate) {
+                    cout << "Skipping duplicate attendance for "
+                         << studentId << ".\n";
+                    continue;
+                }
+
+                AttendanceRecord record(
+                    makeRecordId(),
+                    studentId,
+                    sessionId,
+                    currentDateTime(),
+                    newSession->getCapturedStatus(),
+                    "FileReplayCapture");
+
+                attendanceRegister.addRecord(record);
+                attendanceRecords.push_back(record);
+                ++nextRecordNumber;
+            }
+
+            newSession->closeSession();
+            sessionCourse[sessionId] = course->getCourseCode();
+            saveData();
+
+            cout << "File replay attendance session " << sessionId
+                 << " completed.\n";
+        }
     }
     catch (const exception& e) {
+        newSession.reset();
         cout << "Attendance error: " << e.what() << '\n';
-        session.closeSession();
     }
+}
+
+void UniversitySystem::markAttendance(Student* student) {
+    if (!student) return;
+
+    if (!activeAttendanceSession) {
+        throw SessionClosedException();
+    }
+
+    Course* course = findCourse(activeCourseCode);
+    if (!course) {
+        cout << "Attendance course not found.\n";
+        return;
+    }
+
+    if (!student->isEnrolledIn(course)) {
+        throw NotEnrolledException();
+    }
+
+    string enteredCode = readLine("Enter session code: ");
+
+    if (!activeAttendanceSession->verifyCode(enteredCode)) {
+        throw SessionClosedException();
+    }
+
+    for (const AttendanceRecord& record : attendanceRecords) {
+        if (record.getStudentID() == student->getId() &&
+            record.getSessionID() == activeSessionId) {
+            throw DuplicateAttendanceException();
+        }
+    }
+
+    AttendanceRecord record(
+        makeRecordId(),
+        student->getId(),
+        activeSessionId,
+        currentDateTime(),
+        AttendanceStatus::PRESENT,
+        "SessionCodeCapture");
+
+    attendanceRegister.addRecord(record);
+    attendanceRecords.push_back(record);
+    ++nextRecordNumber;
+
+    cout << "Attendance marked successfully for "
+         << student->getId() << ".\n";
+
+    saveData();
+}
+
+void UniversitySystem::closeAttendance(Lecturer* lecturer) {
+    if (!activeAttendanceSession) {
+        cout << "There is no active attendance session.\n";
+        return;
+    }
+
+    if (activeLecturerId != lecturer->getId()) {
+        cout << "Only the lecturer who opened this session "
+             << "can close it.\n";
+        return;
+    }
+
+    activeAttendanceSession->closeSession();
+    sessionCourse[activeSessionId] = activeCourseCode;
+
+    cout << "Attendance session "
+         << activeSessionId
+         << " completed.\n";
+
+    activeAttendanceSession.reset();
+    activeSessionId.clear();
+    activeCourseCode.clear();
+    activeLecturerId.clear();
+
+    saveData();
 }
 
 void UniversitySystem::attendanceReport(Lecturer* lecturer) const {
@@ -425,12 +540,15 @@ void UniversitySystem::attendanceReport(Lecturer* lecturer) const {
         for (Student* student : studentRepository.getAll()) {
             if (!student->isEnrolledIn(course)) continue;
 
-            int present = 0;
+            double present = 0.0;
             for (const auto& s : sessionCourse) {
                 if (s.second != course->getCourseCode()) continue;
                 for (const AttendanceRecord& r : attendanceRecords) {
                     if (r.getSessionID() == s.first && r.getStudentID() == student->getId()) {
-                        if (r.getEffectiveStatus() == AttendanceStatus::PRESENT) ++present;
+                        if (r.getEffectiveStatus() == AttendanceStatus::PRESENT)
+                            present += 1;
+                        else if (r.getEffectiveStatus() == AttendanceStatus::LATE)
+                            present += 0.5;
                         break;
                     }
                 }
@@ -445,24 +563,144 @@ void UniversitySystem::attendanceReport(Lecturer* lecturer) const {
     if (!found) cout << "No courses assigned to this lecturer.\n";
 }
 
+void UniversitySystem::correctAttendance(Lecturer* lecturer)
+{
+    if (!lecturer)
+        return;
+
+    vector<Course*> ownedCourses;
+    for (Course* course : courseRepository.getAll())
+    {
+        if (lecturerOwnsCourse(lecturer, course))
+            ownedCourses.push_back(course);
+    }
+
+    if (ownedCourses.empty())
+    {
+        cout << "No courses assigned to this lecturer.\n";
+        return;
+    }
+
+    cout << "\n===== CORRECT ATTENDANCE =====\n";
+    for (size_t i = 0; i < ownedCourses.size(); ++i)
+    {
+        cout << i + 1 << ". "
+             << ownedCourses[i]->getCourseCode()
+             << " - " << ownedCourses[i]->getCourseName()
+             << '\n';
+    }
+
+    int courseChoice = readInt(
+        "Choose course: ",
+        1,
+        static_cast<int>(ownedCourses.size()));
+
+    Course* course = ownedCourses[courseChoice - 1];
+
+    vector<AttendanceRecord*> matchingRecords;
+    for (AttendanceRecord& record : attendanceRecords)
+    {
+        auto sessionIt = sessionCourse.find(record.getSessionID());
+        if (sessionIt != sessionCourse.end() &&
+            sessionIt->second == course->getCourseCode())
+        {
+            matchingRecords.push_back(&record);
+        }
+    }
+
+    if (matchingRecords.empty())
+    {
+        cout << "No attendance records found for this course.\n";
+        return;
+    }
+
+    cout << "\nAttendance records:\n";
+    for (size_t i = 0; i < matchingRecords.size(); ++i)
+    {
+        AttendanceRecord* record = matchingRecords[i];
+        cout << i + 1 << ". Record: "
+             << record->getRecordID()
+             << " | Student: " << record->getStudentID()
+             << " | Session: " << record->getSessionID()
+             << " | Current status: "
+             << (record->getEffectiveStatus() == AttendanceStatus::PRESENT
+                     ? "PRESENT"
+                     : "LATE")
+             << '\n';
+    }
+
+    int recordChoice = readInt(
+        "Choose record: ",
+        1,
+        static_cast<int>(matchingRecords.size()));
+
+    AttendanceRecord* record = matchingRecords[recordChoice - 1];
+
+    cout << "\nNew attendance status:\n";
+    cout << "1. PRESENT\n";
+    cout << "2. LATE\n";
+
+    int statusChoice = readInt("Choose status: ", 1, 2);
+    AttendanceStatus correctedStatus =
+        statusChoice == 1
+            ? AttendanceStatus::PRESENT
+            : AttendanceStatus::LATE;
+
+    string reason = readLine("Reason for correction: ");
+    if (reason.empty())
+    {
+        cout << "Correction cancelled: reason is required.\n";
+        return;
+    }
+
+    ostringstream correctionID;
+    correctionID << "COR"
+                 << setw(5)
+                 << setfill('0')
+                 << nextCorrectionNumber++;
+
+    AttendanceCorrection correction(
+        correctionID.str(),
+        currentDateTime(),
+        lecturer->getId(),
+        reason,
+        correctedStatus);
+
+    record->addCorrection(correction);
+    attendanceRegister.applyCorrection(
+        record->getRecordID(),
+        correction);
+
+    cout << "Attendance correction appended successfully.\n";
+    cout << "Original record was not edited or deleted.\n";
+
+    saveData();
+}
+
 void UniversitySystem::administratorMenu(Administrator* admin) {
     while (true) {
         cout << "\n===== ADMINISTRATOR MENU =====\n";
-        cout << "1. Add student\n2. Remove student\n3. Add lecturer\n4. Create course\n"
-             << "5. Remove course\n6. View students\n7. View lecturers\n8. View courses\n"
-             << "9. Save data\n10. Logout\n";
+        cout << "1. Add student\n2. Update student\n3. Remove student\n"
+             << "4. Add lecturer\n5. Update lecturer\n6. Create course\n"
+             << "7. Edit course\n8. Remove course\n9. View students\n"
+             << "10. View lecturers\n11. View courses\n12. Enrollment report\n"
+             << "13. Save data\n14. Logout\n";
 
-        int choice = readInt("Choice: ", 1, 10);
+        int choice = readInt("Choice: ", 1, 14);
         try {
             if (choice == 1) addStudent();
-            else if (choice == 2) removeStudent();
-            else if (choice == 3) addLecturer();
-            else if (choice == 4) addCourse();
-            else if (choice == 5) removeCourse();
-            else if (choice == 6) viewStudents();
-            else if (choice == 7) viewLecturers();
-            else if (choice == 8) viewCourses();
-            else if (choice == 9) saveData();
+            else if (choice == 2) updateStudent();
+            else if (choice == 3) removeStudent();
+            else if (choice == 4) addLecturer();
+            else if (choice == 5) updateLecturer();
+            else if (choice == 6) addCourse();
+            else if (choice == 7) editCourse();
+            else if (choice == 8) removeCourse();
+            else if (choice == 9) viewStudents();
+            else if (choice == 10) viewLecturers();
+            else if (choice == 11) viewCourses();
+            else if (choice == 12) administratorReport();
+            else if (choice == 13) saveData();
             else { admin->logout(); return; }
         }
         catch (const exception& e) { cout << "Error: " << e.what() << '\n'; }
@@ -486,6 +724,24 @@ void UniversitySystem::addStudent() {
     cout << "Student added successfully.\n";
 }
 
+void UniversitySystem::updateStudent()
+{
+    string id = readLine("Student ID to update: ");
+    Student* student = findStudent(id);
+    if (!student) { cout << "Student not found.\n"; return; }
+
+    string name = readLine("New name: ");
+    string username = readLine("New username: ");
+    string password = readLine("New password: ");
+
+    student->setName(name);
+    student->setUsername(username);
+    student->setPassword(password);
+    passwords[username] = password;
+    saveData();
+    cout << "Student updated successfully.\n";
+}
+
 void UniversitySystem::addLecturer() {
     string id = readLine("Lecturer ID: ");
     string name = readLine("Name: ");
@@ -501,6 +757,80 @@ void UniversitySystem::addLecturer() {
     passwords[username] = password;
     saveData();
     cout << "Lecturer added successfully.\n";
+}
+
+void UniversitySystem::updateLecturer()
+{
+    string id = readLine("Lecturer ID to update: ");
+    Lecturer* lecturer = findLecturer(id);
+    if (!lecturer) { cout << "Lecturer not found.\n"; return; }
+
+    string name = readLine("New name: ");
+    string username = readLine("New username: ");
+    string password = readLine("New password: ");
+
+    lecturer->setName(name);
+    lecturer->setUsername(username);
+    lecturer->setPassword(password);
+    passwords[username] = password;
+    saveData();
+    cout << "Lecturer updated successfully.\n";
+}
+
+void UniversitySystem::editCourse()
+{
+    string code = readLine("Course code to edit: ");
+    Course* course = findCourse(code);
+    if (!course) { cout << "Course not found.\n"; return; }
+
+    course->setCourseName(readLine("New course name: "));
+    course->setCapacity(readInt("New capacity: ", course->getEnrolledCount(), 10000));
+
+    string lecturerId = readLine("Lecturer ID (or NONE): ");
+    if (lecturerId == "NONE") lecturerByCourse.erase(code);
+    else if (findLecturer(lecturerId)) lecturerByCourse[code] = lecturerId;
+    else cout << "Lecturer not found; previous lecturer retained.\n";
+
+    string prerequisite = readLine("Prerequisite code (or NONE): ");
+    if (prerequisite == "NONE") {
+        course->setPrerequisite(nullptr);
+        prerequisiteByCourse.erase(code);
+    } else {
+        Course* pre = findCourse(prerequisite);
+        if (pre && pre != course) {
+            course->setPrerequisite(pre);
+            prerequisiteByCourse[code] = {prerequisite};
+        } else {
+            cout << "Prerequisite not found or invalid; previous prerequisite retained.\n";
+        }
+    }
+
+    course->getTimetable().clear();
+    courseSlots[code].clear();
+    string day = readLine("Day: ");
+    string start = readLine("Start time (HH:MM): ");
+    string end = readLine("End time (HH:MM): ");
+    string location = readLine("Location: ");
+    TimeSlot slot(day, start, end, location);
+    course->getTimetable().addSlot(slot);
+    courseSlots[code].push_back(day + "," + start + "," + end + "," + location);
+
+    for (Student* student : studentRepository.getAll())
+        rebuildStudentTimetable(student);
+
+    saveData();
+    cout << "Course updated successfully.\n";
+}
+
+void UniversitySystem::administratorReport() const
+{
+    cout << "\n===== ENROLMENT SUMMARY REPORT =====\n";
+    for (Course* course : courseRepository.getAll())
+    {
+        cout << course->getCourseCode() << " - " << course->getCourseName()
+             << " | Enrolled: " << course->getEnrolledCount()
+             << "/" << course->getCapacity() << '\n';
+    }
 }
 
 void UniversitySystem::addCourse() {
@@ -706,6 +1036,17 @@ void UniversitySystem::loadData() {
             if (record.getRecordID().rfind("REC", 0) == 0) {
                 try { nextRecordNumber = max(nextRecordNumber, stoi(record.getRecordID().substr(3)) + 1); }
                 catch (...) {}
+            }
+
+            for (const AttendanceCorrection& correction : record.getCorrections()) {
+                if (correction.getCorrectionID().rfind("COR", 0) == 0) {
+                    try {
+                        nextCorrectionNumber = max(
+                            nextCorrectionNumber,
+                            stoi(correction.getCorrectionID().substr(3)) + 1);
+                    }
+                    catch (...) {}
+                }
             }
         }
     }

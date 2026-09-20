@@ -49,7 +49,7 @@ void FileReplayCapture::beginSession()
 
     capturedSessionCode = fileSessionCode;
 
-    if (capturedSessionCode != expectedSessionCode)
+    if (!expectedSessionCode.empty() && capturedSessionCode != expectedSessionCode)
     {
         throw runtime_error(
             "Session code mismatch. Expected " + expectedSessionCode +

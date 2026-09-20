@@ -5,9 +5,10 @@
 #include "../include/Administrator.h"
 #include "../include/Course.h"
 #include "../include/LectureCourse.h"
-#include "../include/Labcourse.h"
+#include "../include/LabCourse.h"
 #include "../include/ProjectCourse.h"
 #include "../include/AttendanceRecord.h"
+#include "../include/AttendanceCorrection.h"
 
 #include <filesystem>
 #include <fstream>
@@ -29,6 +30,12 @@ namespace
         return fields;
     }
 
+    void removeCarriageReturn(string& line)
+    {
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+    }
+
     string join(const vector<string>& values, char delimiter)
     {
         string result;
@@ -36,6 +43,39 @@ namespace
         {
             if (i > 0) result += delimiter;
             result += values[i];
+        }
+        return result;
+    }
+
+    // Escape separators used by the simple text persistence format.
+    string encodeField(const string& value)
+    {
+        string result;
+        for (char ch : value)
+        {
+            if (ch == '%') result += "%25";
+            else if (ch == '|') result += "%7C";
+            else if (ch == '~') result += "%7E";
+            else if (ch == '^') result += "%5E";
+            else result += ch;
+        }
+        return result;
+    }
+
+    string decodeField(const string& value)
+    {
+        string result;
+        for (size_t i = 0; i < value.size(); ++i)
+        {
+            if (value[i] == '%' && i + 2 < value.size())
+            {
+                string code = value.substr(i, 3);
+                if (code == "%7C") { result += '|'; i += 2; continue; }
+                if (code == "%7E") { result += '~'; i += 2; continue; }
+                if (code == "%5E") { result += '^'; i += 2; continue; }
+                if (code == "%25") { result += '%'; i += 2; continue; }
+            }
+            result += value[i];
         }
         return result;
     }
@@ -120,6 +160,7 @@ void Storage::loadUsers(
     string line;
     while (getline(in, line))
     {
+        removeCarriageReturn(line);
         if (line.empty()) continue;
         vector<string> f = split(line, '|');
 
@@ -193,6 +234,7 @@ void Storage::loadCourses(
     string line;
     while (getline(in, line))
     {
+        removeCarriageReturn(line);
         if (line.empty()) continue;
         vector<string> f = split(line, '|');
         if (f.size() < 7) continue;
@@ -231,8 +273,22 @@ void Storage::saveAttendance(const vector<AttendanceRecord>& records) const
             << record.getStudentID() << '|'
             << record.getSessionID() << '|'
             << record.getTimestamp() << '|'
-            << attendanceStatusToString(record.getEffectiveStatus()) << '|'
-            << record.getCaptureMethod() << '\n';
+            << attendanceStatusToString(record.getStatus()) << '|'
+            << encodeField(record.getCaptureMethod()) << '|';
+
+        const vector<AttendanceCorrection>& corrections = record.getCorrections();
+        for (size_t i = 0; i < corrections.size(); ++i)
+        {
+            if (i > 0) out << '~';
+            const AttendanceCorrection& correction = corrections[i];
+            out << encodeField(correction.getCorrectionID()) << '^'
+                << encodeField(correction.getCorrectionTime()) << '^'
+                << encodeField(correction.getLecturerID()) << '^'
+                << encodeField(correction.getReason()) << '^'
+                << attendanceStatusToString(correction.getCorrectedStatus());
+        }
+
+        out << '\n';
     }
 }
 
@@ -244,13 +300,36 @@ void Storage::loadAttendance(vector<AttendanceRecord>& records) const
     string line;
     while (getline(in, line))
     {
+        removeCarriageReturn(line);
         if (line.empty()) continue;
         vector<string> f = split(line, '|');
         if (f.size() < 6) continue;
 
-        records.emplace_back(
+        AttendanceRecord record(
             f[0], f[1], f[2], f[3],
-            stringToAttendanceStatus(f[4]), f[5]);
+            stringToAttendanceStatus(f[4]),
+            decodeField(f[5]));
+
+        if (f.size() >= 7 && !f[6].empty())
+        {
+            vector<string> correctionFields = split(f[6], '~');
+            for (const string& correctionText : correctionFields)
+            {
+                vector<string> c = split(correctionText, '^');
+                if (c.size() != 5) continue;
+
+                AttendanceCorrection correction(
+                    decodeField(c[0]),
+                    decodeField(c[1]),
+                    decodeField(c[2]),
+                    decodeField(c[3]),
+                    stringToAttendanceStatus(c[4]));
+
+                record.addCorrection(correction);
+            }
+        }
+
+        records.push_back(record);
     }
 }
 
@@ -271,6 +350,7 @@ void Storage::loadSessions(map<string, string>& sessionCourse) const
     string line;
     while (getline(in, line))
     {
+        removeCarriageReturn(line);
         if (line.empty()) continue;
         vector<string> f = split(line, '|');
         if (f.size() >= 2)

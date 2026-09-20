@@ -1,4 +1,5 @@
-#include "../include/AttendanceSession.h"
+#include "AttendanceSession.h"
+#include "SessionClosedException.h"
 #include <iostream>
 
 using namespace std;
@@ -25,39 +26,50 @@ AttendanceSession::~AttendanceSession()
 
 void AttendanceSession::openSession()
 {
-    if (!status)
-    {
-        status = true;
+    if (status || capture == nullptr)
+        return;
 
-        cout << "Attendance session " << sessionID
-             << " opened." << endl;
-
-        capture->beginSession();
-    }
+    capture->beginSession();
+    status = true;
+    cout << "Attendance session " << sessionID << " opened." << endl;
 }
 
 void AttendanceSession::captureAttendance()
 {
-    if (status)
-    {
-        capture->captureNext();
-    }
-    else
-    {
-        cout << "Cannot capture attendance. "
-             << "The session is closed." << endl;
-    }
+    if (!status)
+        throw SessionClosedException();
+
+    capture->captureNext();
+}
+
+bool AttendanceSession::verifyCode(const string& code) const
+{
+    if (!status || capture == nullptr)
+        return false;
+    return capture->verifyCode(code);
+}
+
+bool AttendanceSession::hasCapturedEvent() const
+{
+    return capture != nullptr && capture->hasEvent();
+}
+
+string AttendanceSession::getCapturedStudentID() const
+{
+    return capture != nullptr ? capture->getLastStudentID() : string();
+}
+
+AttendanceStatus AttendanceSession::getCapturedStatus() const
+{
+    return capture != nullptr ? capture->getLastStatus() : AttendanceStatus::PRESENT;
 }
 
 void AttendanceSession::closeSession()
 {
-    if (status)
-    {
-        status = false;
+    if (!status)
+        return;
 
-        cout << "Attendance session " << sessionID
-             << " closed." << endl;
-
-        capture->endSession();
-    }
+    capture->endSession();
+    status = false;
+    cout << "Attendance session " << sessionID << " closed." << endl;
 }

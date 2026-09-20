@@ -16,8 +16,12 @@ Then:
 Keep the `Data` folder beside `main.cpp`. The program saves and reloads users, courses, enrolments, timetable slots, attendance records and attendance sessions.
 
 ## Sample login
-- Student: `dinusan` / `1235`
-- Lecturer: `lecturer` / `1234`
+- Student: `john` / `1234`
+- Student: `kamal` / `1234`
+- Student: `makee` / `12345`
+- Lecturer: `david` / `1234`
+- Lecturer: `sajee` / `1234`
+- Lecturer: `rajini` / `1234`
 - Administrator: `admin` / `admin`
 
 ## Course registration rules
@@ -41,6 +45,11 @@ S003|LATE
 ```
 
 The first line is verified against the current session code. Only students explicitly listed in the file are marked present/late. Other enrolled students are absent for that session and therefore receive 0 marks for that session.
+
+## Attendance correction (append-only)
+Lecturers can correct an attendance record from the lecturer menu. A correction stores a unique correction ID, timestamp, acting lecturer ID, reason and corrected status. The original AttendanceRecord is never edited or deleted; corrections are appended and the latest correction determines the effective status. Correction history is persisted in `Data/attendance.txt` and restored on startup.
+
+The selected interactive attendance mechanism is **Option A – Rotating session code**. The system also implements the mandatory `FileReplayCapture`. Both are selected at runtime through the lecturer attendance menu.
 
 ## Persistence test
 1. Login as admin.

@@ -7,8 +7,4 @@ all:
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET)
 
 clean:
-	ifeq ($(OS),Windows_NT)
-		del /Q $(TARGET)
-	else
-		rm -f $(TARGET)
-	endif
+	$(RM) $(TARGET)

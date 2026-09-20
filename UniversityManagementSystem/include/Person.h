@@ -32,6 +32,10 @@ public:
     string getName() const;
     string getUsername() const;
 
+    void setName(const string& name);
+    void setUsername(const string& username);
+    void setPassword(const string& password);
+
     // Static function
     static int getPersonCount();
 

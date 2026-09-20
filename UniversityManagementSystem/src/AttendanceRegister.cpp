@@ -27,6 +27,24 @@ void AttendanceRegister::addRecord(
     records.push_back(record);
 }
 
+void AttendanceRegister::applyCorrection(
+    const string& recordID,
+    const AttendanceCorrection& correction)
+{
+    for (AttendanceRecord& record : records)
+    {
+        if (record.getRecordID() == recordID)
+        {
+            record.addCorrection(correction);
+            return;
+        }
+    }
+
+    throw runtime_error(
+        "Attendance record not found: " + recordID
+    );
+}
+
 double AttendanceRegister::calculatePercentage(
     const string& studentID) const
 {

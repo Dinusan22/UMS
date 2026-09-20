@@ -18,6 +18,7 @@ public:
     void removeSlot(const TimeSlot& slot);
 
     bool hasClash(const TimeSlot& slot) const;
+    void clear();
 
     const vector<TimeSlot>& getSlots() const;
 

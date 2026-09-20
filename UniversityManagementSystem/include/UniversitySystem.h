@@ -13,7 +13,7 @@
 #include "Administrator.h"
 #include "Course.h"
 #include "LectureCourse.h"
-#include "Labcourse.h"
+#include "LabCourse.h"
 #include "ProjectCourse.h"
 #include "Enrollment.h"
 #include "AttendanceRegister.h"
@@ -39,8 +39,15 @@ private:
     std::map<std::string, std::vector<std::string>> courseSlots;
     std::map<std::string, std::vector<std::string>> prerequisiteByCourse;
     std::vector<AttendanceRecord> attendanceRecords;
+
+    std::unique_ptr<AttendanceSession> activeAttendanceSession;
+    std::string activeSessionId;
+    std::string activeCourseCode;
+    std::string activeLecturerId;
+
     int nextSessionNumber = 1;
     int nextRecordNumber = 1;
+    int nextCorrectionNumber = 1;
 
 public:
     UniversitySystem();
@@ -54,8 +61,12 @@ public:
     void administratorMenu(Administrator* administrator);
 
     void addStudent();
+    void updateStudent();
     void addLecturer();
+    void updateLecturer();
     void addCourse();
+    void editCourse();
+    void administratorReport() const;
     void removeStudent();
     void removeLecturer();
     void removeCourse();
@@ -69,7 +80,10 @@ public:
     void viewStudentAttendance(Student* student) const;
 
     void openAttendance(Lecturer* lecturer);
+    void markAttendance(Student* student);
+    void closeAttendance(Lecturer* lecturer);
     void attendanceReport(Lecturer* lecturer) const;
+    void correctAttendance(Lecturer* lecturer);
 
     void saveData();
     void loadData();

@@ -1,5 +1,7 @@
 #include "Course.h"
 #include "Student.h"
+#include "CourseFullException.h"
+#include "DuplicateEnrollmentException.h"
 
 #include <algorithm>
 #include <iostream>
@@ -25,7 +27,7 @@ bool Course::enrollStudent(Student* student)
 
     if (isFull())
     {
-        return false;
+        throw CourseFullException();
     }
 
     auto studentFound = find(
@@ -36,7 +38,7 @@ bool Course::enrollStudent(Student* student)
 
     if (studentFound != enrolledStudents.end())
     {
-        return false;
+        throw DuplicateEnrollmentException();
     }
 
     enrolledStudents.push_back(student);
@@ -149,4 +151,21 @@ ostream& operator<<(ostream& out, const Course& course)
         << course.calculateCredits();
 
     return out;
+}
+void Course::setCourseName(const string& name)
+{
+    courseName = name;
+}
+
+void Course::setCapacity(int maxCapacity)
+{
+    if (maxCapacity < static_cast<int>(enrolledStudents.size()))
+    {
+        throw AppException("Capacity cannot be smaller than current enrollment.");
+    }
+    if (maxCapacity <= 0)
+    {
+        throw AppException("Course capacity must be greater than zero.");
+    }
+    capacity = maxCapacity;
 }

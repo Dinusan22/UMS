@@ -22,7 +22,7 @@ private:
 
 public:
     FileReplayCapture(const string& filename,
-                      const string& expectedSessionCode);
+                      const string& expectedSessionCode = "");
 
     ~FileReplayCapture() override;
 
@@ -30,10 +30,11 @@ public:
     void captureNext() override;
     void endSession() override;
 
-    bool hasEvent() const;
-    const string& getLastStudentID() const;
-    AttendanceStatus getLastStatus() const;
+    bool hasEvent() const override;
+    const string& getLastStudentID() const override;
+    AttendanceStatus getLastStatus() const override;
     const string& getCapturedSessionCode() const;
+
 };
 
 #endif
