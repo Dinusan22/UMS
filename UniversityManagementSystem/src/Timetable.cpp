@@ -29,3 +29,8 @@ bool Timetable::hasClash(const TimeSlot& slot) const
 
     return false;
 }
+
+const vector<TimeSlot>& Timetable::getSlots() const
+{
+    return slots;
+}

@@ -2,6 +2,7 @@
 #define TIMETABLE_H
 
 #include <vector>
+#include <iostream>
 #include "TimeSlot.h"
 
 using namespace std;
@@ -13,8 +14,15 @@ private:
 
 public:
     void addSlot(const TimeSlot& slot);
+
     void removeSlot(const TimeSlot& slot);
+
     bool hasClash(const TimeSlot& slot) const;
+
+    const vector<TimeSlot>& getSlots() const;
+
+    friend ostream& operator<<(ostream& out,
+                               const Timetable& timetable);
 };
 
 #endif
