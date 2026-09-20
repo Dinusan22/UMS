@@ -1,0 +1,275 @@
+CHANGELOG
+University Course Registration, Timetable & Attendance Management System
+UML Design -> Final C++ Project Comparison
+
+1. OVERALL CHANGE SUMMARY
+-------------------------
+
+User hierarchy:
+- UML: Person -> Student, Lecturer, Administrator.
+- Final: Implemented using abstract Person and overridden displayMenu().
+
+Course hierarchy:
+- UML: Course -> lectureCourse, labCourse, projectCourse.
+- Final: Implemented as LectureCourse, LabCourse and ProjectCourse with calculateCredits().
+
+Attendance capture:
+- UML: Abstract AttendanceCapture with FileReplay and SessionCode strategies.
+- Final: Implemented with FileReplayCapture and SessionCodeCapture. AttendanceSession uses the base-class pointer.
+
+Persistence:
+- UML: Repository is the domain-facing persistence facade and Storage handles file I/O.
+- Final: Repository<T> is used as a generic repository and Storage handles the actual file operations.
+
+System/UI:
+- UML: Member 3 owns persistence, UI, integration and testing.
+- Final: UniversitySystem was added as the main application orchestration/UI layer.
+
+Enrollment:
+- UML class name: Entrollment.
+- Final class name: Enrollment.
+
+2. CLASS-BY-CLASS CHANGE LOG
+----------------------------
+
+Person
+- UML: ID, name, username, password; login(), logout(), abstract displayMenu().
+- Final: Implemented all core attributes and functions.
+- Added getters, virtual destructor, static personCount and getPersonCount().
+
+Student
+- UML: enrolledCourses, timetable; registerCourse(), dropCourse(), viewTimetable(), viewAttendance(), displayMenu().
+- Final: enrolledCourses and timetable are implemented.
+- Added isEnrolledIn(), getEnrolledCourses(), getTimetable() and operator<<.
+- Most interactive timetable and attendance work is handled by UniversitySystem.
+
+Lecturer
+- UML: assignedCourses plus openAttendance(), closeAttendance(), viewEnrolment(), attendanceReport(), displayMenu().
+- Final: displayMenu() is implemented.
+- Lecturer course ownership is handled through UniversitySystem::lecturerByCourse.
+- Attendance operations are handled through UniversitySystem.
+
+Administrator
+- UML: addStudent(), removeStudent(), addLecturer(), createCourse(), removeCourse(), generateReport(), displayMenu().
+- Final: displayMenu() is implemented.
+- Administrative operations are handled through UniversitySystem.
+
+Course
+- UML: code, title, credits, capacity, lecturer, prerequisite, students, timetable and attendanceRegister.
+- Final: courseCode, courseName, capacity, enrolledStudents, prerequisite and timetable are implemented.
+- Added getters/setters, getEnrolledCount(), displayCourseDetails() and operator<<.
+- Credits are calculated through calculateCredits().
+- Lecturer and attendance state are coordinated by UniversitySystem instead of being stored directly inside Course.
+
+LectureCourse / LabCourse / ProjectCourse
+- UML: each subtype overrides calculateCredits().
+- Final: all three subclasses are implemented.
+- UML-specific scheduleLecture(), scheduleLab() and evaluvateProject() operations are handled through the shared Course timetable and UniversitySystem.
+
+Timetable / TimeSlot
+- UML: Timetable owns TimeSlot objects; add/remove/hasClash. TimeSlot has day/start/end/location, overlaps() and operator==().
+- Final: Core operations are implemented.
+- Added getters and Timetable operator<< for persistence/reporting.
+
+AttendanceRegister
+- UML: registerID; addRecord(), calculatePercentage(), viewRecords().
+- Final: Implemented with an internal vector of AttendanceRecord objects.
+- calculatePercentage() supports calculation for a specific student.
+
+AttendanceRecord
+- UML: timestamp, recordID, status, captureMethod.
+- Final: Also stores studentID, sessionID and AttendanceCorrection objects.
+- Added getters, getEffectiveStatus() and addCorrection().
+
+AttendanceCorrection
+- UML: correctionID, correctionTime, reason, correctedstatus.
+- Final: Implemented with createCorrection(), viewCorrection() and getCorrectedStatus().
+
+AttendanceSession
+- UML: sessionID, date, openTime, closeTime, status.
+- Final: Also contains AttendanceCapture*, captureAttendance(), verifyCode() and captured-event handling.
+- Copy constructor and copy assignment are disabled to prevent double deletion.
+- Destructor releases the owned capture object.
+
+AttendanceCapture / FileReplayCapture / SessionCodeCapture
+- UML: abstract beginSession(), captureNext(), endSession().
+- Final: Both concrete capture strategies are implemented.
+- SessionCodeCapture supports code verification and expiry.
+- FileReplayCapture reads Data/capture.txt and replays attendance events.
+
+AppException hierarchy
+- UML: AppException -> PrerequisiteException, SessionClosedException, NotEnrolledException.
+- Final: Implemented.
+- AppException derives from std::exception and provides what().
+
+Enrollment
+- UML spelling: Entrollment.
+- Final spelling: Enrollment.
+- Implements enrollment, drop, prerequisite checking, timetable clash detection and capacity checking.
+
+Repository / Storage
+- UML: Repository is persistence facade; Storage performs file operations.
+- Final: Repository<T> is a generic template with add(), remove(), findById(), getAll() and size().
+- Storage handles actual users, courses, attendance and session file I/O.
+
+UniversitySystem
+- Not shown as a UML domain class.
+- Added in final project as the main integration/UI layer.
+- Coordinates repositories, Storage, Enrollment, AttendanceRegister, AttendanceSession and role menus.
+- Handles login, CRUD operations, course registration, attendance, save/load and system integration.
+
+3. OOP REQUIREMENT CHANGE LOG
+----------------------------
+
+Encapsulation:
+- Implemented.
+- Main domain attributes are private.
+- Business rules are handled inside domain classes.
+
+Inheritance and polymorphism:
+- Implemented.
+- Person hierarchy, Course hierarchy and AttendanceCapture strategy hierarchy are polymorphic.
+
+Abstract interface / dependency inversion:
+- Implemented.
+- AttendanceSession depends on AttendanceCapture* rather than a specific capture implementation.
+
+Composition / aggregation:
+- Partially changed from UML.
+- Student/Course timetable and TimeSlot ownership remain.
+- Lecturer association and attendance ownership are coordinated by UniversitySystem.
+
+Destructor / Rule of Three/Five:
+- Implemented for AttendanceSession ownership.
+- Copying of AttendanceSession is disabled.
+
+Operator overloading:
+- Implemented.
+- TimeSlot operator== is used for clash detection.
+- operator<< is provided for Student, Course and Timetable.
+
+Exception handling:
+- Implemented.
+- AppException hierarchy is used and exceptions are caught by the UI/system layer.
+
+Templates and STL:
+- Implemented.
+- STL vectors/maps are used.
+- Repository<T> is implemented as a template.
+
+File handling:
+- Implemented.
+- Storage handles actual file operations.
+- UniversitySystem uses Storage for persistence.
+
+Static members / const correctness:
+- Mostly implemented.
+- Person has a static personCount.
+- Many read-only operations are const.
+- The UML rationale mentioned a possible static counter in Enrollment, but the final Enrollment class does not contain that counter.
+
+4. FUNCTIONAL FEATURES ADDED / IMPLEMENTED
+-------------------------------------------
+
+- Role-based login.
+- Student, Lecturer and Administrator menus.
+- Add/remove students.
+- Add/remove lecturers.
+- Create/remove courses.
+- Course registration.
+- Course dropping.
+- Duplicate enrollment checking.
+- Prerequisite checking.
+- Timetable clash detection.
+- Course capacity checking.
+- Student timetable handling.
+- Lecturer course assignment.
+- Rotating session-code attendance.
+- File-replay attendance.
+- Session-code expiry.
+- Duplicate attendance prevention.
+- Attendance percentage/report calculation.
+- Attendance correction support.
+- Persistent users, courses, attendance and sessions.
+- Automatic Data directory/file handling.
+- Unique attendance/session IDs.
+- operator<< output for Student, Course and Timetable.
+- README and Makefile build support.
+
+5. IMPORTANT UML-TO-CODE DIFFERENCES
+------------------------------------
+
+1. Course ownership:
+   UML shows Course with Lecturer* and AttendanceRegister.
+   Final implementation keeps lecturer assignment and attendance state in UniversitySystem.
+
+2. UI responsibility:
+   UML lists many role operations directly on Student, Lecturer and Administrator.
+   Final implementation uses these classes for role identity/menu behaviour while UniversitySystem performs most interactive operations.
+
+3. Repository design:
+   UML describes Repository as the persistence facade.
+   Final implementation uses Repository<T> as a reusable generic in-memory repository, while Storage performs file I/O.
+
+4. Enrollment naming:
+   UML uses Entrollment.
+   Final project uses Enrollment.
+
+5. Subtype-specific operations:
+   UML lists scheduleLecture(), scheduleLab() and evaluvateProject().
+   Final project handles scheduling/evaluation-related workflow through shared Course/Timetable and UniversitySystem functionality.
+
+6. AttendanceSession ownership:
+   Final AttendanceSession explicitly manages AttendanceCapture ownership and disables copying to avoid double deletion.
+
+7. Static counter:
+   Person has static personCount.
+   The final Enrollment class does not contain the additional static counter mentioned in the UML design rationale.
+
+6. FINAL PROJECT FILES / DATA
+----------------------------
+
+Main source/header groups include:
+- Person, Student, Lecturer, Administrator
+- Course, LectureCourse, LabCourse, ProjectCourse
+- Timetable, TimeSlot
+- AttendanceSession
+- AttendanceCapture, FileReplayCapture, SessionCodeCapture
+- AttendanceRegister, AttendanceRecord, AttendanceCorrection
+- AttendanceStatus
+- AppException hierarchy
+- Enrollment
+- Repository
+- Storage
+- UniversitySystem
+
+Data files:
+- Data/users.txt
+- Data/courses.txt
+- Data/attendance.txt
+- Data/sessions.txt
+- Data/capture.txt
+
+Other project files:
+- README.md
+- Makefile
+
+7. VERIFICATION
+---------------
+
+The supplied final project was checked by compiling it with:
+
+g++ -std=c++17 -Wall -Wextra
+
+The compilation completed successfully with no compiler errors or warnings in the check.
+
+8. SOURCE BASIS
+---------------
+
+This changelog was prepared by comparing:
+- The supplied CO2203 UML Design Rationale / Interface Agreement PDF.
+- The supplied UniversityManagementSystem_cleaned final C++ project ZIP.
+
+The UML diagram is on page 1.
+The design rationale is on pages 3-5.
+The Interface Agreement is on page 6.
