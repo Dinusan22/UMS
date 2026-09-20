@@ -5,11 +5,14 @@
 #include <vector>
 #include <iostream>
 
+#include "Timetable.h"
+
 using namespace std;
 
 class Student;
 
-class Course {
+class Course
+{
 private:
     string courseCode;
     string courseName;
@@ -18,6 +21,8 @@ private:
     vector<Student*> enrolledStudents;
 
     Course* prerequisite;
+
+    Timetable timetable;
 
 public:
     Course(const string& code,
@@ -37,6 +42,9 @@ public:
 
     void setPrerequisite(Course* course);
     Course* getPrerequisite() const;
+
+    Timetable& getTimetable();
+    const Timetable& getTimetable() const;
 
     virtual int calculateCredits() const = 0;
 

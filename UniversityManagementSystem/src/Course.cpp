@@ -12,16 +12,19 @@ Course::Course(const string& code,
     : courseCode(code),
       courseName(name),
       capacity(maxCapacity),
-      prerequisite(nullptr) {
+      prerequisite(nullptr)
+{
 }
 
-bool Course::enrollStudent(Student* student) {
-
-    if (student == nullptr) {
+bool Course::enrollStudent(Student* student)
+{
+    if (student == nullptr)
+    {
         return false;
     }
 
-    if (isFull()) {
+    if (isFull())
+    {
         return false;
     }
 
@@ -31,109 +34,112 @@ bool Course::enrollStudent(Student* student) {
         student
     );
 
-    if (studentFound != enrolledStudents.end()) {
+    if (studentFound != enrolledStudents.end())
+    {
         return false;
     }
 
     enrolledStudents.push_back(student);
-
     return true;
 }
 
-bool Course::removeStudent(Student* student) {
-
+bool Course::removeStudent(Student* student)
+{
     auto studentFound = find(
         enrolledStudents.begin(),
         enrolledStudents.end(),
         student
     );
 
-    if (studentFound == enrolledStudents.end()) {
+    if (studentFound == enrolledStudents.end())
+    {
         return false;
     }
 
     enrolledStudents.erase(studentFound);
-
     return true;
 }
 
-bool Course::isFull() const {
-
+bool Course::isFull() const
+{
     return enrolledStudents.size() >=
            static_cast<size_t>(capacity);
 }
 
-int Course::getEnrolledCount() const {
-
-    return static_cast<int>(
-        enrolledStudents.size()
-    );
+int Course::getEnrolledCount() const
+{
+    return static_cast<int>(enrolledStudents.size());
 }
 
-string Course::getCourseCode() const {
-
+string Course::getCourseCode() const
+{
     return courseCode;
 }
 
-string Course::getCourseName() const {
-
+string Course::getCourseName() const
+{
     return courseName;
 }
 
-void Course::setPrerequisite(Course* course) {
-
+void Course::setPrerequisite(Course* course)
+{
     prerequisite = course;
 }
 
-Course* Course::getPrerequisite() const {
-
+Course* Course::getPrerequisite() const
+{
     return prerequisite;
 }
 
-void Course::displayCourseDetails() const {
+Timetable& Course::getTimetable()
+{
+    return timetable;
+}
 
+const Timetable& Course::getTimetable() const
+{
+    return timetable;
+}
+
+void Course::displayCourseDetails() const
+{
     cout << "\nCourse Code: "
-         << courseCode << endl;
+         << courseCode << '\n';
 
     cout << "Course Name: "
-         << courseName << endl;
+         << courseName << '\n';
 
     cout << "Capacity: "
-         << capacity << endl;
+         << capacity << '\n';
 
     cout << "Enrolled Students: "
-         << enrolledStudents.size() << endl;
+         << enrolledStudents.size() << '\n';
 
     cout << "Credits: "
-         << calculateCredits() << endl;
+         << calculateCredits() << '\n';
 
-    if (prerequisite != nullptr) {
-
+    if (prerequisite != nullptr)
+    {
         cout << "Prerequisite: "
              << prerequisite->getCourseCode()
-             << endl;
-
-    } else {
-
-        cout << "Prerequisite: None" << endl;
+             << '\n';
+    }
+    else
+    {
+        cout << "Prerequisite: None\n";
     }
 }
 
-ostream& operator<<(ostream& out,
-                    const Course& course) {
-
+ostream& operator<<(ostream& out, const Course& course)
+{
     out << "Course Code: "
         << course.courseCode
-
         << ", Name: "
         << course.courseName
-
         << ", Capacity: "
         << course.capacity
-
         << ", Enrolled: "
         << course.enrolledStudents.size()
-
         << ", Credits: "
         << course.calculateCredits();
 

@@ -6,15 +6,16 @@
 
 using namespace std;
 
-class Enrollment {
+class Enrollment
+{
 public:
-
     bool enrollStudent(Student* student, Course* course);
 
     bool dropCourse(Student* student, Course* course);
 
-    bool checkPrerequisites(Student* student,
-                            Course* course) const;
+    bool checkPrerequisites(Student* student, Course* course) const;
+
+    bool detectClash(Student* student, Course* course) const;
 };
 
 #endif

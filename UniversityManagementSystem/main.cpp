@@ -22,8 +22,8 @@ using namespace std;
 // Test Course
 // ============================================================
 
-void testCourse(Course* course) {
-
+void testCourse(Course* course)
+{
     Student student1(
         "S002",
         "Student One",
@@ -49,13 +49,12 @@ void testCourse(Course* course) {
     // Add Student 1
     // --------------------------------------------------------
 
-    if (course->enrollStudent(&student1)) {
-
+    if (course->enrollStudent(&student1))
+    {
         cout << "S002 enrolled successfully.\n";
-
     }
-    else {
-
+    else
+    {
         cout << "S002 could not be enrolled.\n";
     }
 
@@ -64,13 +63,12 @@ void testCourse(Course* course) {
     // Add Student 2
     // --------------------------------------------------------
 
-    if (course->enrollStudent(&student2)) {
-
+    if (course->enrollStudent(&student2))
+    {
         cout << "S003 enrolled successfully.\n";
-
     }
-    else {
-
+    else
+    {
         cout << "S003 could not be enrolled.\n";
     }
 
@@ -79,13 +77,12 @@ void testCourse(Course* course) {
     // Test Duplicate Enrollment
     // --------------------------------------------------------
 
-    if (course->enrollStudent(&student1)) {
-
+    if (course->enrollStudent(&student1))
+    {
         cout << "S002 enrolled successfully again.\n";
-
     }
-    else {
-
+    else
+    {
         cout << "Duplicate enrolment rejected.\n";
     }
 
@@ -99,16 +96,14 @@ void testCourse(Course* course) {
 
     cout << "\nRemoving S002...\n";
 
-    if (course->removeStudent(&student1)) {
-
+    if (course->removeStudent(&student1))
+    {
         cout << "S002 removed successfully.\n";
-
     }
-    else {
-
+    else
+    {
         cout << "S002 was not found.\n";
     }
-
 
     course->displayCourseDetails();
 }
@@ -118,9 +113,8 @@ void testCourse(Course* course) {
 // Main
 // ============================================================
 
-int main() {
-
-
+int main()
+{
     // ========================================================
     // Create Users
     // ========================================================
@@ -185,9 +179,8 @@ int main() {
     cout << "        USER LOGIN TESTING\n";
     cout << "========================================\n";
 
-
-    for (Person* user : users) {
-
+    for (Person* user : users)
+    {
         string username;
         string password;
 
@@ -197,18 +190,16 @@ int main() {
         cout << "Enter password: ";
         cin >> password;
 
-
-        if (user->login(username, password)) {
-
+        if (user->login(username, password))
+        {
             cout << "\nLogin successful!\n";
 
             user->displayMenu();
 
             user->logout();
-
         }
-        else {
-
+        else
+        {
             cout << "\nInvalid username or password.\n";
         }
     }
@@ -261,11 +252,6 @@ int main() {
         10
     );
 
-
-    // --------------------------------------------------------
-    // Set CO1101 as prerequisite for CO2206
-    // --------------------------------------------------------
-
     advancedProgramming.setPrerequisite(&programming);
 
 
@@ -289,25 +275,23 @@ int main() {
     // Register Student
     // --------------------------------------------------------
 
-    try {
-
+    try
+    {
         cout << "\nRegistering student S001 in CO2203...\n";
 
         if (enrollment.enrollStudent(
                 &student,
-                &lecture)) {
-
+                &lecture))
+        {
             cout << "Student registered successfully.\n";
-
         }
-        else {
-
+        else
+        {
             cout << "Student registration failed.\n";
         }
-
     }
-    catch (const AppException& error) {
-
+    catch (const AppException& error)
+    {
         cout << "Error: "
              << error.what()
              << endl;
@@ -320,23 +304,21 @@ int main() {
 
     cout << "\nTrying to register S001 in CO2203 again...\n";
 
-    try {
-
+    try
+    {
         if (enrollment.enrollStudent(
                 &student,
-                &lecture)) {
-
+                &lecture))
+        {
             cout << "Student registered successfully again.\n";
-
         }
-        else {
-
+        else
+        {
             cout << "Duplicate enrollment rejected.\n";
         }
-
     }
-    catch (const AppException& error) {
-
+    catch (const AppException& error)
+    {
         cout << "Error: "
              << error.what()
              << endl;
@@ -349,23 +331,21 @@ int main() {
 
     cout << "\nDropping student S001 from CO2203...\n";
 
-    try {
-
+    try
+    {
         if (enrollment.dropCourse(
                 &student,
-                &lecture)) {
-
+                &lecture))
+        {
             cout << "Student dropped successfully.\n";
-
         }
-        else {
-
+        else
+        {
             cout << "Student could not be dropped.\n";
         }
-
     }
-    catch (const AppException& error) {
-
+    catch (const AppException& error)
+    {
         cout << "Error: "
              << error.what()
              << endl;
@@ -378,23 +358,21 @@ int main() {
 
     cout << "\nTrying to drop CO2203 again...\n";
 
-    try {
-
+    try
+    {
         if (enrollment.dropCourse(
                 &student,
-                &lecture)) {
-
+                &lecture))
+        {
             cout << "Student dropped successfully.\n";
-
         }
-        else {
-
+        else
+        {
             cout << "Student could not be dropped.\n";
         }
-
     }
-    catch (const NotEnrolledException& error) {
-
+    catch (const NotEnrolledException& error)
+    {
         cout << "Not enrolled error: "
              << error.what()
              << endl;
@@ -416,23 +394,21 @@ int main() {
 
     cout << "\nTrying to register CO2206 without CO1101...\n";
 
-    try {
-
+    try
+    {
         if (enrollment.enrollStudent(
                 &student,
-                &advancedProgramming)) {
-
+                &advancedProgramming))
+        {
             cout << "CO2206 registered successfully.\n";
-
         }
-        else {
-
+        else
+        {
             cout << "CO2206 registration failed.\n";
         }
-
     }
-    catch (const PrerequisiteException& error) {
-
+    catch (const PrerequisiteException& error)
+    {
         cout << "Prerequisite error: "
              << error.what()
              << endl;
@@ -445,23 +421,21 @@ int main() {
 
     cout << "\nRegistering prerequisite CO1101...\n";
 
-    try {
-
+    try
+    {
         if (enrollment.enrollStudent(
                 &student,
-                &programming)) {
-
+                &programming))
+        {
             cout << "CO1101 registered successfully.\n";
-
         }
-        else {
-
+        else
+        {
             cout << "CO1101 registration failed.\n";
         }
-
     }
-    catch (const AppException& error) {
-
+    catch (const AppException& error)
+    {
         cout << "Error: "
              << error.what()
              << endl;
@@ -474,23 +448,21 @@ int main() {
 
     cout << "\nTrying to register CO2206 again...\n";
 
-    try {
-
+    try
+    {
         if (enrollment.enrollStudent(
                 &student,
-                &advancedProgramming)) {
-
+                &advancedProgramming))
+        {
             cout << "CO2206 registered successfully.\n";
-
         }
-        else {
-
+        else
+        {
             cout << "CO2206 registration failed.\n";
         }
-
     }
-    catch (const PrerequisiteException& error) {
-
+    catch (const PrerequisiteException& error)
+    {
         cout << "Prerequisite error: "
              << error.what()
              << endl;
@@ -505,19 +477,13 @@ int main() {
     cout << "        COURSE TESTING\n";
     cout << "========================================\n";
 
-
     cout << "\n--- Lecture Course ---\n";
-
     testCourse(&lecture);
 
-
     cout << "\n--- Lab Course ---\n";
-
     testCourse(&lab);
 
-
     cout << "\n--- Project Course ---\n";
-
     testCourse(&project);
 
 
@@ -534,15 +500,14 @@ int main() {
     // Not Enrolled Exception
     // --------------------------------------------------------
 
-    try {
-
+    try
+    {
         cout << "\nTesting NotEnrolledException...\n";
 
         throw NotEnrolledException();
-
     }
-    catch (const AppException& error) {
-
+    catch (const AppException& error)
+    {
         cout << "Caught exception: "
              << error.what()
              << endl;
@@ -553,20 +518,171 @@ int main() {
     // Session Closed Exception
     // --------------------------------------------------------
 
-    try {
-
+    try
+    {
         cout << "\nTesting SessionClosedException...\n";
 
         throw SessionClosedException();
-
     }
-    catch (const AppException& error) {
-
+    catch (const AppException& error)
+    {
         cout << "Caught exception: "
              << error.what()
              << endl;
     }
 
+
+   // ========================================================
+// Timetable Clash Testing
+// ========================================================
+
+cout << "\n========================================\n";
+cout << "        TIMETABLE CLASH TESTING\n";
+cout << "========================================\n";
+
+
+// --------------------------------------------------------
+// Create first course
+// Monday 09:00 - 10:00
+// --------------------------------------------------------
+
+LectureCourse morningCourse(
+    "CO3001",
+    "Morning Course",
+    10
+);
+
+TimeSlot morningSlot(
+    "Monday",
+    "09:00",
+    "10:00",
+    "Room A"
+);
+
+morningCourse.getTimetable().addSlot(morningSlot);
+
+
+// --------------------------------------------------------
+// Register first course
+// --------------------------------------------------------
+
+cout << "\nRegistering Morning Course...\n";
+
+try
+{
+    if (enrollment.enrollStudent(
+            &student,
+            &morningCourse))
+    {
+        cout << "Morning Course registered successfully.\n";
+    }
+    else
+    {
+        cout << "Morning Course registration failed.\n";
+    }
+}
+catch (const AppException& error)
+{
+    cout << "Error: "
+         << error.what()
+         << endl;
+}
+
+
+// --------------------------------------------------------
+// Create second course WITH a clash
+// Monday 09:30 - 10:30
+// --------------------------------------------------------
+
+LectureCourse clashCourse(
+    "CO3002",
+    "Clash Course",
+    10
+);
+
+TimeSlot clashSlot(
+    "Monday",
+    "09:30",
+    "10:30",
+    "Room B"
+);
+
+clashCourse.getTimetable().addSlot(clashSlot);
+
+
+// --------------------------------------------------------
+// Try to register the clash course
+// --------------------------------------------------------
+
+cout << "\nTrying to register Clash Course...\n";
+
+try
+{
+    if (enrollment.enrollStudent(
+            &student,
+            &clashCourse))
+    {
+        cout << "Clash Course registered successfully.\n";
+    }
+    else
+    {
+        cout << "Clash detected. Registration rejected.\n";
+    }
+}
+catch (const AppException& error)
+{
+    cout << "Error: "
+         << error.what()
+         << endl;
+}
+
+
+// --------------------------------------------------------
+// Create third course WITHOUT a clash
+// Monday 10:00 - 11:00
+// --------------------------------------------------------
+
+LectureCourse afternoonCourse(
+    "CO3003",
+    "Afternoon Course",
+    10
+);
+
+TimeSlot afternoonSlot(
+    "Monday",
+    "10:00",
+    "11:00",
+    "Room C"
+);
+
+afternoonCourse.getTimetable().addSlot(afternoonSlot);
+
+
+// --------------------------------------------------------
+// Try to register the non-clashing course
+// --------------------------------------------------------
+
+cout << "\nTrying to register Afternoon Course...\n";
+
+try
+{
+    if (enrollment.enrollStudent(
+            &student,
+            &afternoonCourse))
+    {
+        cout << "Afternoon Course registered successfully.\n";
+    }
+    else
+    {
+        cout << "Afternoon Course registration failed.\n";
+    }
+}
+catch (const AppException& error)
+{
+    cout << "Error: "
+         << error.what()
+         << endl;
+}
 
     // ========================================================
     // Program End
@@ -575,7 +691,6 @@ int main() {
     cout << "\n========================================\n";
     cout << "        PROGRAM FINISHED\n";
     cout << "========================================\n";
-
 
     return 0;
 }

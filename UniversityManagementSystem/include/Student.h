@@ -2,6 +2,8 @@
 #define STUDENT_H
 
 #include "Person.h"
+#include "Timetable.h"
+
 #include <vector>
 #include <iostream>
 
@@ -9,9 +11,12 @@ using namespace std;
 
 class Course;
 
-class Student : public Person {
+class Student : public Person
+{
 private:
     vector<Course*> enrolledCourses;
+
+    Timetable timetable;
 
 public:
     Student(const string& id,
@@ -27,6 +32,10 @@ public:
     bool isEnrolledIn(Course* course) const;
 
     const vector<Course*>& getEnrolledCourses() const;
+
+    Timetable& getTimetable();
+
+    const Timetable& getTimetable() const;
 
     friend ostream& operator<<(ostream& out, const Student& student);
 };
